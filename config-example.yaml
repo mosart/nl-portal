@@ -5,4 +5,4 @@ CLIENT_ID: "1111aaaa-22bb-33cc-44dd-555555eeeeee" # replace with your id
 CLIENT_SECRET: "ASDF2342352ASDFASDFASDsdfasdf1234124124_asdfasDFASDFwsf3-sasdf32rwefasdfasd__asddDAS" # replace with your secret
 OpenAIRE_AAI_URL: "https://aai.openaire.eu/oidc/token"
 OpenAIRE_API_URL: "https://api-beta.openaire.eu/graph/"
-Org_data_file: "rpo_nl_list_test_20240201.csv" # latest: rpo_nl_list_long_20240201.csv
+Org_data_file: "rpo_nl_list_test_20240201.csv" # all: rpo_nl_list_long_20240201.csv | test: rpo_nl_list_test_20240201.csv | for latest go to: https://doi.org/10.5281/zenodo.11360571
