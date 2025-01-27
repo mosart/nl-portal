@@ -8,8 +8,8 @@ The `nl-stats.py` script retrieves the latest number of research outputs from Op
 
 #### 1. Clone the Repository
 ```bash
-git clone <repository_url>
-cd <repository_name>
+git clone https://github.com/mosart/nl-portal
+cd nl-portal
 ```
 
 #### 2. Set Up Python Environment
@@ -24,23 +24,27 @@ cd <repository_name>
    pip install -r requirements.txt
    ```
 
-#### 3. Configure `config.yaml`
+#### 3. Get your API credentials as registered service
+[https://graph.openaire.eu/docs/apis/authentication#registered-services](https://graph.openaire.eu/docs/apis/authentication#registered-services)
+
+#### 4. Configure `config.yaml`
 1. Rename `config-example.yaml` to `config.yaml`.
 2. Add the following details to `config.yaml`:
-   - `OpenAIRE_Client_ID`: Your OpenAIRE client ID.
-   - `OpenAIRE_Client_Secret`: Your OpenAIRE client secret.
+   - `CLIENT_ID`: Your OpenAIRE client ID.
+   - `CLIENT_SECRET`: Your OpenAIRE client secret.
    - `Org_data_file`: Path to the CSV file containing the list of Dutch institutions (e.g., `rpo_nl_list_test_20240201.csv`).
 
 Example `config.yaml`:
 ```yaml
-OpenAIRE_Client_ID: "your_client_id"
-OpenAIRE_Client_Secret: "your_client_secret"
+CLIENT_ID: "your_client_id"
+CLIENT_SECRET: "your_client_secret"
 OpenAIRE_API: "https://api-beta.openaire.eu/graph/"
 Org_data_file: "rpo_nl_list_test_20240201.csv"
 ```
 
-#### 4. Download Institution Data File
+#### 5. Download Institution Data File
 - For testing: Download `rpo_nl_list_test_20240201.csv`.
+- to get the latest visit: [https://doi.org/10.5281/zenodo.11360571](https://doi.org/10.5281/zenodo.11360571)
 - Place the file in the same directory or update the path in `config.yaml`.
 
 ### Usage
