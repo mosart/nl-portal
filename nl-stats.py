@@ -8,7 +8,7 @@ def load_config(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
-# Authenticate and retrieve access token
+# Authenticate and retrieve access_token
 def get_access_token(client_id, client_secret):
     print("Requesting access token...")
     url = "https://aai.openaire.eu/oidc/token"
@@ -24,20 +24,20 @@ def get_access_token(client_id, client_secret):
         raise Exception(f"Failed to retrieve access token: {response.status_code}, {response.text}")
 
 # Fetch data from API
-def fetch_api_data(url, token, params=None):
-    print(f"Fetching data from {url} with params {params}...")
-    headers = {'Authorization': f'Bearer {token}'}
-    response = requests.get(url, headers=headers, params=params)
+def fetch_api_data(api_url, access_token, params=None):
+    print(f"Fetching data from {api_url} with params {params}...")
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response = requests.get(api_url, headers=headers, params=params)
     if response.status_code == 200:
         print("Data fetched successfully.")
         return response.json()
     else:
         raise Exception(f"API request failed: {response.status_code}, {response.text}")
 
-# Process the institutions data
-def process_institutions(file_path):
-    print(f"Loading institutions data from {file_path}...")
-    return pd.read_csv(file_path)
+# Process the data file with all the Dutch institutions
+def process_institutions(data_file):
+    print(f"Loading data file from {data_file}...")
+    return pd.read_csv(data_file)
 
 # Main script
 def main():
@@ -46,17 +46,17 @@ def main():
 
     client_id = config['OpenAIRE_Client_ID']
     client_secret = config['OpenAIRE_Client_Secret']
-    org_data_file = config['Org_data_file']
+    data_file = config['Org_data_file']
 
     access_token = get_access_token(client_id, client_secret)
-    institutions = process_institutions(org_data_file)
+    institutions = process_institutions(data_file)
 
     results = []
 
     for index, row in institutions.iterrows():
         print(f"Processing institution {index + 1}/{len(institutions)}: {row['full_name_in_English']}...")
         ror_link = row['ROR_LINK']
-        org_name = row['full_name_in_English']
+        institution_name = row['full_name_in_English']
 
         # Step 3: Get OpenAIRE Organization ID
         org_response = fetch_api_data(
@@ -67,25 +67,25 @@ def main():
         openorg_ids = [org['id'] for org in org_response['results'] if org['id'].startswith('openorgs')]
 
         for openorg_id in openorg_ids:
-            print(f"Processing OpenAIRE Org ID: {openorg_id}...")
+            print(f"Processing {openorg_id}...")
 
-            # Step 4: Get research products count
+            # Step 4: Get number of research products
             research_products_response = fetch_api_data(
                 f"{config['OpenAIRE_API']}researchProducts",
                 access_token,
                 params={'relOrganizationId': openorg_id}
             )
-            num_found_research_products = research_products_response['header']['numFound']
-            print(f"Research products count: {num_found_research_products}")
+            num_found_research_products_openorgs = research_products_response['header']['numFound']
+            print(f"Research products count: {num_found_research_products_openorgs}")
 
-            # Step 5: Get projects count
+            # Step 5: Get number of projects
             projects_response = fetch_api_data(
                 f"{config['OpenAIRE_API']}projects",
                 access_token,
                 params={'relOrganizationId': openorg_id}
             )
-            num_found_projects = projects_response['header']['numFound']
-            print(f"Projects count: {num_found_projects}")
+            num_found_research_projects_openorgs = projects_response['header']['numFound']
+            print(f"Projects count: {num_found_research_projects_openorgs}")
 
             # Step 6: Get data sources
             data_sources_response = fetch_api_data(
@@ -94,22 +94,22 @@ def main():
                 params={'relOrganizationId': openorg_id}
             )
             for ds in data_sources_response['results']:
-                ds_id = ds['id']
-                ds_name = ds.get('officialName', '')
-                ds_compatibility = ds.get('openaireCompatibility', '')
-                ds_last_validated = ds.get('dateOfValidation', '')
-                ds_url = ds.get('websiteUrl', '')
+                datasource_id = ds['id']
+                datasource_name = ds.get('officialName', '')
+                datasource_compatibility = ds.get('openaireCompatibility', '')
+                datasource_last_validated = ds.get('dateOfValidation', '')
+                datasource_url = ds.get('websiteUrl', '')
 
-                print(f"Processing Data Source: {ds_name} (ID: {ds_id})...")
+                print(f"Processing Data Source: {datasource_name} (ID: {datasource_id})...")
 
-                # Step 7: Get research products in data source
+                # Step 7: Get number of research products in data source
                 ds_research_products_response = fetch_api_data(
                     f"{config['OpenAIRE_API']}researchProducts",
                     access_token,
-                    params={'relCollectedFromDatasourceId': ds_id}
+                    params={'relCollectedFromDatasourceId': datasource_id}
                 )
-                num_found_research_products_ds = ds_research_products_response['header']['numFound']
-                print(f"Research products in data source: {num_found_research_products_ds}")
+                num_found_research_products_datasource = ds_research_products_response['header']['numFound']
+                print(f"Research products in data source: {num_found_research_products_datasource}")
 
                 # Step 8: Get research products in data source associated with organization
                 ds_org_research_products_response = fetch_api_data(
@@ -117,33 +117,33 @@ def main():
                     access_token,
                     params={
                         'relOrganizationId': openorg_id,
-                        'relCollectedFromDatasourceId': ds_id
+                        'relCollectedFromDatasourceId': datasource_id
                     }
                 )
-                num_found_research_products_ds_org = ds_org_research_products_response['header']['numFound']
-                print(f"Research products in data source associated with organization: {num_found_research_products_ds_org}")
+                num_found_research_products_datasource_and_openorgs = ds_org_research_products_response['header']['numFound']
+                print(f"Research products in data source associated with organization: {num_found_research_products_datasource_and_openorgs}")
 
                 # Step 9: Calculate missing research products in data source
-                num_missing_ds = num_found_research_products_ds - num_found_research_products_ds_org
-                print(f"Missing research products in data source: {num_missing_ds}")
+                num_missing_research_products_in_datasource = num_found_research_products_datasource - num_found_research_products_datasource_and_openorgs
+                print(f"Missing research products in data source: {num_missing_research_products_in_datasource}")
 
                 # Step 10: Calculate missing research products in organization
-                num_missing_org = num_found_research_products - num_found_research_products_ds_org
-                print(f"Missing research products in organization: {num_missing_org}")
+                num_missing_research_products_in_openorgs = num_found_research_products_openorgs - num_found_research_products_datasource_and_openorgs
+                print(f"Missing research products in organization: {num_missing_research_products_in_openorgs}")
 
                 results.append({
-                    'Institution': org_name,
-                    'OpenAIRE_Org_ID': openorg_id,
-                    'DataSource_ID': ds_id,
-                    'DataSource_Name': ds_name,
-                    'DataSource_Compatibility': ds_compatibility,
-                    'DataSource_LastValidated': ds_last_validated,
-                    'DataSource_URL': ds_url,
-                    'Num_Research_Products_Org': num_found_research_products,
-                    'Num_Research_Products_DS': num_found_research_products_ds,
-                    'Num_Research_Products_DS_Org': num_found_research_products_ds_org,
-                    'Num_Missing_DS': num_missing_ds,
-                    'Num_Missing_Org': num_missing_org,
+                    'Institution': institution_name,
+                    'OpenOrg_ID': openorg_id,
+                    'DataSource_ID': datasource_id,
+                    'DataSource_Name': datasource_name,
+                    'DataSource_Compatibility': datasource_compatibility,
+                    'DataSource_LastValidated': datasource_last_validated,
+                    'DataSource_URL': datasource_url,
+                    'Num_Found_ResearchProducts_for_OpenOrg': num_found_research_products_openorgs,
+                    'Num_Found_ResearchProducts_for_DataSource': num_found_research_products_datasource,
+                    'Num_Found_ResearchProducts_for_OpenOrg_AND_DataSource': num_found_research_products_datasource_and_openorgs,
+                    'Num_Missing_ResearchProducts_in_DataSource': num_missing_research_products_in_datasource,
+                    'Num_Missing_ResearchProducts_in_OpenOrg': num_missing_research_products_in_openorgs,
                 })
 
     # Save results to CSV
