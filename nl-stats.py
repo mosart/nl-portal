@@ -44,8 +44,8 @@ def main():
     print("Loading configuration...")
     config = load_config('config.yaml')
 
-    client_id = config['OpenAIRE_Client_ID']
-    client_secret = config['OpenAIRE_Client_Secret']
+    client_id = config['CLIENT_ID']
+    client_secret = config['CLIENT_SECRET']
     data_file = config['Org_data_file']
 
     access_token = get_access_token(client_id, client_secret)
