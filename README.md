@@ -25,7 +25,8 @@ cd nl-portal
    ```
 
 #### 3. Get your API credentials as registered service
-[https://graph.openaire.eu/docs/apis/authentication#registered-services](https://graph.openaire.eu/docs/apis/authentication#registered-services)
+* [Register and login here: https://develop.openaire.eu/](https://develop.openaire.eu/)
+* [Read more instructions here](https://graph.openaire.eu/docs/apis/authentication#registered-services)
 
 #### 4. Configure `config.yaml`
 1. Rename `config-example.yaml` to `config.yaml`.
@@ -80,7 +81,7 @@ Org_data_file: "rpo_nl_list_test_20240201.csv"
 
 If you encounter issues, check the API documentation [here](https://graph.openaire.eu/docs/apis/graph-api/).
 
-### Who it works
+### How it works
 
 #### For you to do: 
 a. add client id and secret in the config.yaml file (rename config-example.yaml first. config.yaml is in gitignore.)
