@@ -2,3 +2,4 @@ requests
 PyYAML
 pandas
 ipykernel
+openpyxl
